@@ -767,6 +767,10 @@
             if (!gameData.selectedTier) return;
             
             gameData.filteredCards = gameData.cards.filter(card => card.tier === gameData.selectedTier);
+            console.log('Selected tier:', gameData.selectedTier);
+            console.log('Filtered cards:', gameData.filteredCards);
+            console.log('Total cards:', gameData.cards.length);
+            
             gameData.currentCardIndex = 0;
             gameData.score = 0;
             gameData.combo = 0;
@@ -785,15 +789,12 @@
             const cardStack = document.getElementById('cardStack');
             cardStack.innerHTML = '';
             
-            // Create visible cards in stack
-            for (let i = 0; i < Math.min(3, gameData.filteredCards.length - gameData.currentCardIndex); i++) {
-                const card = createCardElement(i);
-                card.style.transform = `translateY(${i * 5}px) scale(${1 - i * 0.05})`;
-                card.style.zIndex = 10 - i;
+            // Only show current card for better UX
+            if (gameData.currentCardIndex < gameData.filteredCards.length) {
+                const card = createCardElement(0);
+                card.classList.add('active');
                 cardStack.appendChild(card);
             }
-            
-            updateCurrentCard();
         }
 
         function createCardElement(index) {
@@ -801,7 +802,7 @@
             card.className = 'card';
             card.dataset.index = index;
             
-            const cardData = gameData.filteredCards[gameData.currentCardIndex + index];
+            const cardData = gameData.filteredCards[gameData.currentCardIndex];
             if (!cardData) return card;
             
             card.innerHTML = `
@@ -841,13 +842,7 @@
         }
 
         function updateCurrentCard() {
-            const cards = document.querySelectorAll('.card');
-            cards.forEach((card, index) => {
-                card.classList.remove('active');
-                if (index === 0) {
-                    card.classList.add('active');
-                }
-            });
+            // This function is no longer needed since we only show one card at a time
         }
 
         function updateGameStats() {
@@ -887,7 +882,7 @@
         }
 
         function discardCurrentCard() {
-            const currentCard = document.querySelector('.card.active');
+            const currentCard = document.querySelector('.card');
             if (currentCard) {
                 currentCard.classList.add('discarded');
                 setTimeout(() => {
