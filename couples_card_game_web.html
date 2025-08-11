@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Couples Card Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .welcome-screen, .game-screen, .results-screen {
+            display: none;
+        }
+
+        .welcome-screen.active, .game-screen.active, .results-screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .tier-selection, .mode-selection {
+            margin: 30px 0;
+        }
+
+        .tier-btn, .mode-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: transform 0.2s;
+        }
+
+        .tier-btn:hover, .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .card {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .card p {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .rating-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .rating-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: transform 0.2s;
+        }
+
+        .rating-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .score-display {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .score-display h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .next-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 10px;
+        }
+
+        .next-btn:hover {
+            background: #229954;
+        }
+
+        .results {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .winner {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            margin: 5px;
+        }
+
+        .round-info {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div class="welcome-screen active" id="welcomeScreen">
+            <h1>💕 Couples Card Game 💕</h1>
+            <p class="subtitle">A turn-based game to strengthen your relationship</p>
+            
+            <div class="input-group">
+                <input type="text" id="player1Name" placeholder="Player 1's name" value="Player 1">
+                <input type="text" id="player2Name" placeholder="Player 2's name" value="Player 2">
+            </div>
+
+            <div class="tier-selection">
+                <h3>Choose your tier:</h3>
+                <button class="tier-btn" onclick="selectTier('Beginner')">Beginner</button>
+                <button class="tier-btn" onclick="selectTier('Intermediate')">Intermediate</button>
+                <button class="tier-btn" onclick="selectTier('Advanced')">Advanced</button>
+            </div>
+
+            <div class="mode-selection">
+                <h3>Choose game mode:</h3>
+                <button class="mode-btn" onclick="selectMode('questions')">Questions</button>
+                <button class="mode-btn" onclick="selectMode('challenges')">Challenges</button>
+                <button class="mode-btn" onclick="selectMode('mixed')">Mixed</button>
+            </div>
+
+            <div class="input-group">
+                <label for="rounds">Number of rounds (1-10):</label>
+                <input type="number" id="rounds" min="1" max="10" value="5">
+            </div>
+
+            <button class="next-btn" onclick="startGame()">Start Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="round-info">
+                <h3>Round <span id="currentRound">1</span> of <span id="totalRounds">5</span></h3>
+                <p>Current Player: <span id="currentPlayer">Player 1</span></p>
+            </div>
+
+            <div class="score-display">
+                <h4>Scores:</h4>
+                <p><span id="player1Score">0</span> - <span id="player2Score">0</span></p>
+            </div>
+
+            <div class="card" id="gameCard">
+                <h3 id="cardType">Question</h3>
+                <p id="cardContent">Loading...</p>
+            </div>
+
+            <div id="ratingSection" style="display: none;">
+                <h3>Rate this answer/challenge:</h3>
+                <div class="rating-buttons">
+                    <button class="rating-btn" onclick="rate(1)">1</button>
+                    <button class="rating-btn" onclick="rate(2)">2</button>
+                    <button class="rating-btn" onclick="rate(3)">3</button>
+                    <button class="rating-btn" onclick="rate(4)">4</button>
+                    <button class="rating-btn" onclick="rate(5)">5</button>
+                </div>
+            </div>
+
+            <button class="next-btn" id="nextBtn" onclick="nextCard()" style="display: none;">Next Card</button>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <h1>🏆 Game Results 🏆</h1>
+            
+            <div class="results">
+                <h3>Final Scores:</h3>
+                <p><span id="finalPlayer1">Player 1</span>: <span id="finalScore1">0</span> points</p>
+                <p><span id="finalPlayer2">Player 2</span>: <span id="finalScore2">0</span> points</p>
+                
+                <div class="winner" id="winner"></div>
+                
+                <p>💕 Remember: The real win is strengthening your relationship! 💕</p>
+            </div>
+
+            <button class="next-btn" onclick="playAgain()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            tiers: {
+                "Beginner": {
+                    questions: [
+                        "What's your partner's favorite color?",
+                        "What's your partner's favorite food?",
+                        "What's your partner's favorite movie?",
+                        "What's your partner's dream vacation destination?",
+                        "What's your partner's favorite hobby?",
+                        "What's your partner's favorite season?",
+                        "What's your partner's favorite music genre?",
+                        "What's your partner's favorite animal?",
+                        "What's your partner's favorite drink?",
+                        "What's your partner's favorite book?"
+                    ],
+                    challenges: [
+                        "Hold hands for 30 seconds",
+                        "Give each other a compliment",
+                        "Share a happy memory together",
+                        "Tell each other what you appreciate most",
+                        "Share your favorite thing about your partner",
+                        "Give each other a hug",
+                        "Share a goal you have together",
+                        "Tell each other 'I love you'",
+                        "Share something you're grateful for",
+                        "Give each other a high five"
+                    ]
+                },
+                "Intermediate": {
+                    questions: [
+                        "What's your partner's biggest fear?",
+                        "What's your partner's biggest dream?",
+                        "What's your partner's most embarrassing moment?",
+                        "What's your partner's favorite childhood memory?",
+                        "What's your partner's biggest achievement?",
+                        "What's your partner's favorite way to relax?",
+                        "What's your partner's biggest pet peeve?",
+                        "What's your partner's favorite way to spend a weekend?",
+                        "What's your partner's biggest strength?",
+                        "What's your partner's favorite way to show love?"
+                    ],
+                    challenges: [
+                        "Share a secret you've never told anyone",
+                        "Tell each other what you'd change about yourselves",
+                        "Share your biggest insecurity",
+                        "Tell each other what you're most proud of",
+                        "Share a time you felt most vulnerable",
+                        "Tell each other what you're afraid of",
+                        "Share your biggest regret",
+                        "Tell each other what you're most excited about",
+                        "Share a time you felt most loved",
+                        "Tell each other what you're most grateful for"
+                    ]
+                },
+                "Advanced": {
+                    questions: [
+                        "What's your partner's deepest desire?",
+                        "What's your partner's biggest regret in life?",
+                        "What's your partner's biggest insecurity?",
+                        "What's your partner's biggest fear about the future?",
+                        "What's your partner's biggest dream for your relationship?",
+                        "What's your partner's biggest challenge in life?",
+                        "What's your partner's biggest strength in relationships?",
+                        "What's your partner's biggest weakness?",
+                        "What's your partner's biggest hope for the future?",
+                        "What's your partner's biggest lesson learned in life?"
+                    ],
+                    challenges: [
+                        "Share your deepest fear about your relationship",
+                        "Tell each other what you'd change about your relationship",
+                        "Share your biggest relationship insecurity",
+                        "Tell each other what you're most afraid of losing",
+                        "Share your biggest relationship challenge",
+                        "Tell each other what you're most grateful for in your relationship",
+                        "Share your biggest relationship goal",
+                        "Tell each other what you're most proud of in your relationship",
+                        "Share your biggest relationship fear",
+                        "Tell each other what you're most excited about in your future together"
+                    ]
+                }
+            },
+            selectedTier: null,
+            selectedMode: null,
+            player1Name: "Player 1",
+            player2Name: "Player 2",
+            scores: { player1: 0, player2: 0 },
+            currentRound: 1,
+            totalRounds: 5,
+            currentPlayer: "player1",
+            gameCards: []
+        };
+
+        function selectTier(tier) {
+            gameData.selectedTier = tier;
+            document.querySelectorAll('.tier-btn').forEach(btn => btn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)');
+            event.target.style.background = 'linear-gradient(45deg, #27ae60, #229954)';
+        }
+
+        function selectMode(mode) {
+            gameData.selectedMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)');
+            event.target.style.background = 'linear-gradient(45deg, #27ae60, #229954)';
+        }
+
+        function startGame() {
+            if (!gameData.selectedTier || !gameData.selectedMode) {
+                alert('Please select both tier and mode!');
+                return;
+            }
+
+            gameData.player1Name = document.getElementById('player1Name').value || "Player 1";
+            gameData.player2Name = document.getElementById('player2Name').value || "Player 2";
+            gameData.totalRounds = parseInt(document.getElementById('rounds').value) || 5;
+            gameData.scores = { player1: 0, player2: 0 };
+            gameData.currentRound = 1;
+            gameData.currentPlayer = "player1";
+
+            // Generate game cards
+            generateGameCards();
+
+            document.getElementById('welcomeScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            
+            showCard();
+        }
+
+        function generateGameCards() {
+            gameData.gameCards = [];
+            const tier = gameData.tiers[gameData.selectedTier];
+            
+            for (let i = 0; i < gameData.totalRounds; i++) {
+                let mode = gameData.selectedMode;
+                if (mode === 'mixed') {
+                    mode = Math.random() < 0.5 ? 'questions' : 'challenges';
+                }
+                
+                const cards = tier[mode];
+                const card = cards[Math.floor(Math.random() * cards.length)];
+                gameData.gameCards.push({ content: card, mode: mode });
+            }
+        }
+
+        function showCard() {
+            const card = gameData.gameCards[gameData.currentRound - 1];
+            const currentPlayerName = gameData.currentPlayer === "player1" ? gameData.player1Name : gameData.player2Name;
+            
+            document.getElementById('currentRound').textContent = gameData.currentRound;
+            document.getElementById('totalRounds').textContent = gameData.totalRounds;
+            document.getElementById('currentPlayer').textContent = currentPlayerName;
+            document.getElementById('player1Score').textContent = gameData.scores.player1;
+            document.getElementById('player2Score').textContent = gameData.scores.player2;
+            
+            document.getElementById('cardType').textContent = card.mode === 'questions' ? '❓ Question' : '🎯 Challenge';
+            document.getElementById('cardContent').textContent = card.content;
+            
+            document.getElementById('ratingSection').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('ratingSection').style.display = 'block';
+            }, 2000);
+        }
+
+        function rate(rating) {
+            const card = gameData.gameCards[gameData.currentRound - 1];
+            
+            if (card.mode === 'questions') {
+                // Only the current player gets points for questions
+                if (gameData.currentPlayer === "player1") {
+                    gameData.scores.player1 += rating;
+                } else {
+                    gameData.scores.player2 += rating;
+                }
+            } else {
+                // Both players get points for challenges
+                gameData.scores.player1 += rating;
+                gameData.scores.player2 += rating;
+            }
+            
+            document.getElementById('ratingSection').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'block';
+            
+            // Switch players for next round
+            gameData.currentPlayer = gameData.currentPlayer === "player1" ? "player2" : "player1";
+        }
+
+        function nextCard() {
+            gameData.currentRound++;
+            
+            if (gameData.currentRound > gameData.totalRounds) {
+                showResults();
+            } else {
+                showCard();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.add('active');
+            
+            document.getElementById('finalPlayer1').textContent = gameData.player1Name;
+            document.getElementById('finalPlayer2').textContent = gameData.player2Name;
+            document.getElementById('finalScore1').textContent = gameData.scores.player1;
+            document.getElementById('finalScore2').textContent = gameData.scores.player2;
+            
+            const winner = document.getElementById('winner');
+            if (gameData.scores.player1 > gameData.scores.player2) {
+                winner.textContent = `🎉 ${gameData.player1Name} wins! 🎉`;
+            } else if (gameData.scores.player2 > gameData.scores.player1) {
+                winner.textContent = `🎉 ${gameData.player2Name} wins! 🎉`;
+            } else {
+                winner.textContent = "🤝 It's a tie! 🤝";
+            }
+        }
+
+        function playAgain() {
+            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById('welcomeScreen').classList.add('active');
+            
+            // Reset form
+            document.getElementById('player1Name').value = "Player 1";
+            document.getElementById('player2Name').value = "Player 2";
+            document.getElementById('rounds').value = "5";
+            
+            // Reset button styles
+            document.querySelectorAll('.tier-btn, .mode-btn').forEach(btn => {
+                btn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
+            });
+            
+            gameData.selectedTier = null;
+            gameData.selectedMode = null;
+        }
+    </script>
+</body>
+</html> 
