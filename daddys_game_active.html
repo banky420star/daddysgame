@@ -477,6 +477,62 @@
             100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; }
         }
 
+        .tier-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .tier-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .tier-card:hover, .tier-card.selected {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-color: #ffd700;
+        }
+
+        .tier-card.drinking { background: linear-gradient(45deg, #add8e6, #87ceeb); }
+        .tier-card.tier1 { background: linear-gradient(45deg, #90ee90, #32cd32); }
+        .tier-card.tier2 { background: linear-gradient(45deg, #d8bfd8, #dda0dd); }
+        .tier-card.tier3 { background: linear-gradient(45deg, #ff69b4, #ff1493); }
+        .tier-card.punishment { background: linear-gradient(45deg, #ff6347, #dc143c); }
+
+        .tier-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .tier-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .card-count {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
         @media (max-width: 480px) {
             .title {
                 font-size: 1.5rem;
@@ -500,6 +556,10 @@
                 width: 100%;
                 max-width: 200px;
             }
+
+            .tier-selection {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -522,6 +582,34 @@
             <div class="header">
                 <h1 class="title">Choose Your Tier</h1>
                 <p class="subtitle">Select difficulty and start your active gameplay</p>
+            </div>
+
+            <div class="tier-selection">
+                <div class="tier-card drinking" onclick="selectTier('drinking')">
+                    <div class="tier-name">🍺 Drinking</div>
+                    <div class="tier-description">Light drinking games and simple tasks</div>
+                    <div class="card-count">8 cards</div>
+                </div>
+                <div class="tier-card tier1" onclick="selectTier('tier1')">
+                    <div class="tier-name">🟢 Tier 1</div>
+                    <div class="tier-description">Basic commands and light play</div>
+                    <div class="card-count">8 cards</div>
+                </div>
+                <div class="tier-card tier2" onclick="selectTier('tier2')">
+                    <div class="tier-name">🟣 Tier 2</div>
+                    <div class="tier-description">More intimate activities and toys</div>
+                    <div class="card-count">20 cards</div>
+                </div>
+                <div class="tier-card tier3" onclick="selectTier('tier3')">
+                    <div class="tier-name">🔴 Tier 3</div>
+                    <div class="tier-description">Advanced play and submission</div>
+                    <div class="card-count">10 cards</div>
+                </div>
+                <div class="tier-card punishment" onclick="selectTier('punishment')">
+                    <div class="tier-name">⚡ Punishment</div>
+                    <div class="tier-description">Discipline and control elements</div>
+                    <div class="card-count">6 cards</div>
+                </div>
             </div>
 
             <div class="controls">
@@ -670,6 +758,8 @@
 
         function selectTier(tier) {
             gameData.selectedTier = tier;
+            document.querySelectorAll('.tier-card').forEach(card => card.classList.remove('selected'));
+            event.target.closest('.tier-card').classList.add('selected');
             document.getElementById('startGameBtn').disabled = false;
         }
 
