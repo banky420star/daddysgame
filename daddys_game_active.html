@@ -173,6 +173,10 @@
             z-index: 10;
         }
 
+        .card.flipped {
+            transform: rotateY(180deg) translateY(-20px) scale(1.05);
+        }
+
         .card.discarded {
             transform: translateX(300px) rotate(15deg);
             opacity: 0;
@@ -830,8 +834,11 @@
                 <div class="card-front">
                     <div class="card-content">
                         <div class="card-header">
-                            <div class="card-title">Daddy's Game</div>
-                            <div class="card-player">Tap to reveal</div>
+                            <div class="card-title">🎴 Daddy's Game</div>
+                            <div class="card-player">Tap to reveal card</div>
+                        </div>
+                        <div class="card-prompt" style="text-align: center; margin-top: 40px; font-size: 1.2rem; opacity: 0.8;">
+                            ${gameData.selectedTier.toUpperCase()} TIER
                         </div>
                     </div>
                 </div>
@@ -855,6 +862,9 @@
             
             card.classList.add('flipped', 'flip-animation');
             gameData.isCardFlipped = true;
+            
+            // Add transform to actually flip the card
+            card.style.transform = 'rotateY(180deg)';
             
             setTimeout(() => {
                 card.classList.remove('flip-animation');
