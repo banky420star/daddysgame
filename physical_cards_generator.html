@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daddy's Game - Physical Card Generator</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none !important; }
+            .card { page-break-inside: avoid; }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            width: 300px;
+            height: 420px;
+            background: linear-gradient(135deg, #1a0a1a 0%, #2a0a2a 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 2px solid #8a2be2;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(75, 0, 130, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #da70d6;
+        }
+
+        .card-player {
+            font-size: 1rem;
+            opacity: 0.9;
+            padding: 5px 15px;
+            background: rgba(138, 43, 226, 0.3);
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        .card-prompt {
+            font-size: 1rem;
+            line-height: 1.6;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .tier-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #8a2be2;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .card-number {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn {
+            background: #8a2be2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #9370db;
+        }
+
+        .tier-selector {
+            margin: 10px 0;
+        }
+
+        .tier-selector label {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .print-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .print-info h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+
+        .print-info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <h1>🎴 Daddy's Game - Physical Card Generator</h1>
+        
+        <div class="print-info">
+            <h3>📋 Printing Instructions:</h3>
+            <ul>
+                <li><strong>Paper:</strong> Use A4 or Letter size cardstock (300gsm recommended)</li>
+                <li><strong>Print Settings:</strong> Double-sided printing, no margins</li>
+                <li><strong>Cutting:</strong> Cut along the card borders with bleed marks</li>
+                <li><strong>Lamination:</strong> Optional - adds durability and protection</li>
+                <li><strong>Card Size:</strong> Each card is 300x420px (standard poker size)</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <h3>🎯 Select Cards to Generate:</h3>
+            
+            <div class="tier-selector">
+                <label><input type="checkbox" value="drinking" checked> 🍺 Drinking (8 cards)</label>
+                <label><input type="checkbox" value="tier1" checked> 🟢 Tier 1 (8 cards)</label>
+                <label><input type="checkbox" value="tier2" checked> 🟣 Tier 2 (20 cards)</label>
+                <label><input type="checkbox" value="tier3" checked> 🔴 Tier 3 (10 cards)</label>
+                <label><input type="checkbox" value="punishment" checked> ⚡ Punishment (6 cards)</label>
+            </div>
+
+            <button class="btn" onclick="generateCards()">Generate Selected Cards</button>
+            <button class="btn" onclick="generateAllCards()">Generate All Cards</button>
+            <button class="btn" onclick="window.print()">🖨️ Print Cards</button>
+            <button class="btn" onclick="clearCards()">Clear Cards</button>
+        </div>
+    </div>
+
+    <div id="cardContainer" class="card-grid">
+        <!-- Cards will be generated here -->
+    </div>
+
+    <script>
+        const gameData = {
+            cards: [
+                // drinking – Banks
+                {tier: "drinking", player: "Banks", title: "Line Up", prompt: "Take a line of your choice off a surface or Emma's body."},
+                {tier: "drinking", player: "Banks", title: "Pipe Hit", prompt: "Take a hit from your pipe, exhaling slowly while Emma watches."},
+                {tier: "drinking", player: "Banks", title: "Shot Down", prompt: "Take a shot, then point to a spot on Emma's body to touch."},
+                {tier: "drinking", player: "Banks", title: "Five-Second Chug", prompt: "Down your drink 5 s, then set a rule for Emma."},
+                // drinking – Emma
+                {tier: "drinking", player: "Emma", title: "Ket Bump", prompt: "Small ket bump; stay silent, nod at Banks for approval."},
+                {tier: "drinking", player: "Emma", title: "Pipe Hit", prompt: "Take a pipe hit, holding eye contact as you exhale."},
+                {tier: "drinking", player: "Emma", title: "Shot Down", prompt: "Take a shot of Banks' choice, then 5-second sexy dance."},
+                {tier: "drinking", player: "Emma", title: "Five-Second Chug", prompt: "Down drink 5 s, then kneel silently 10 s."},
+                // tier1 – Banks
+                {tier: "tier1", player: "Banks", title: "Command Pose", prompt: "Order Emma to hold a pose 60 s while you stroke lightly."},
+                {tier: "tier1", player: "Banks", title: "Rule Starter", prompt: "Set a silent rule for next 2 hands; break = 3 spanks."},
+                {tier: "tier1", player: "Banks", title: "Tease Touch", prompt: "Emma kisses your clothed cock 30 s, eye contact."},
+                {tier: "tier1", player: "Banks", title: "Spank Warning", prompt: "One hard spank + describe future spank scenario."},
+                // tier1 – Emma
+                {tier: "tier1", player: "Emma", title: "Flirty Adjustment", prompt: "Adjust clothing, nod for Banks' approval."},
+                {tier: "tier1", player: "Emma", title: "Obedient Gesture", prompt: "Mime 'What do you want, Daddy?' then obey silently."},
+                {tier: "tier1", player: "Emma", title: "Sexy Dance", prompt: "Slow silent sway 60 s; break character = 3 spanks."},
+                {tier: "tier1", player: "Emma", title: "Cock Tease", prompt: "Stroke Banks' cock over pants 30 s, silent."},
+                // punishment – Banks
+                {tier: "punishment", player: "Banks", title: "Three Hard Spanks", prompt: "Deliver 3 intense spanks; Emma nods after each."},
+                {tier: "punishment", player: "Banks", title: "Silent Kneel", prompt: "Emma kneels 60 s, eyes down, no sound."},
+                {tier: "punishment", player: "Banks", title: "Muted Pose", prompt: "Emma holds chosen pose 30 s in silence."},
+                {tier: "punishment", player: "Banks", title: "Quiet Strip", prompt: "Emma removes one clothing item silently."},
+                {tier: "punishment", player: "Banks", title: "Cock Worship Pause", prompt: "30 s kissing/stroking + 30 s quiet kneel."},
+                {tier: "punishment", player: "Banks", title: "Rule Reset", prompt: "Set strict rule for next 2 hands."},
+                // tier2 – Banks
+                {tier: "tier2", player: "Banks", title: "Outfit Control", prompt: "Choose/remove clothing; Emma changes silently 2 min."},
+                {tier: "tier2", player: "Banks", title: "Toy Command", prompt: "Emma rubs small toy over clothes while you stroke."},
+                {tier: "tier2", player: "Banks", title: "Intense Spanks", prompt: "3 hard spanks; nod after each or repeat."},
+                {tier: "tier2", player: "Banks", title: "Cock Worship", prompt: "Kiss & stroke your cock 60 s, your choice clothed/bare."},
+                {tier: "tier2", player: "Banks", title: "Rule Tightening", prompt: "Strict rule next 3 hands; break = 3 spanks."},
+                {tier: "tier2", player: "Banks", title: "Toy Prep", prompt: "Hand medium toy; Emma holds while you describe use."},
+                {tier: "tier2", player: "Banks", title: "Video Tease", prompt: "Describe 2-min silent video; Emma sends 3 photos + vid within 10 min."},
+                {tier: "tier2", player: "Banks", title: "Power Pose", prompt: "Order kneel 60 s then coconut-oil line off her body."},
+                {tier: "tier2", player: "Banks", title: "Cock and Spank", prompt: "Emma strokes 30 s; you spank 3× next 30 s."},
+                {tier: "tier2", player: "Banks", title: "Toy Tease", prompt: "Insert small toy halfway, hold 30 s silently."},
+                // tier2 – Emma
+                {tier: "tier2", player: "Emma", title: "Coconut Oil Tease", prompt: "Oil body 3 min, then drip soy wax where Banks chooses."},
+                {tier: "tier2", player: "Emma", title: "Vibrator Play", prompt: "Use small vibe low setting during 2 poker hands."},
+                {tier: "tier2", player: "Emma", title: "Sultry Pose", prompt: "Hold pose 60 s silent on all fours etc."},
+                {tier: "tier2", player: "Emma", title: "Pleading Spanks", prompt: "Beg with gestures for 3 spanks; nod after each."},
+                {tier: "tier2", player: "Emma", title: "Toy Temptation", prompt: "Fuck medium dildo 60 s while Banks spanks 3×."},
+                {tier: "tier2", player: "Emma", title: "Dressed for Daddy", prompt: "Change into lingerie; silent sexy dance 2 min."},
+                {tier: "tier2", player: "Emma", title: "Cock Surrender", prompt: "Offer 40 s blowjob control to Banks."},
+                {tier: "tier2", player: "Emma", title: "Toy Display", prompt: "Hold medium toy on clit 60 s silent."},
+                {tier: "tier2", player: "Emma", title: "Kneeling Tease", prompt: "Kneel, stroke cock 30 s eyes down."},
+                {tier: "tier2", player: "Emma", title: "Wax Play", prompt: "Drip soy wax on chosen spot, stay still while Banks touches."},
+                // tier3 – Banks
+                {tier: "tier3", player: "Banks", title: "Show Director", prompt: "Direct Emma fucking large dildo 4 min while you stroke."},
+                {tier: "tier3", player: "Banks", title: "Spank Domination", prompt: "5 intense spanks; nod after each or repeat."},
+                {tier: "tier3", player: "Banks", title: "Cock Command", prompt: "Guide Emma's head for 2-min worship."},
+                {tier: "tier3", player: "Banks", title: "Toy Test", prompt: "Insert chosen toy slowly; no complaints allowed."},
+                {tier: "tier3", player: "Banks", title: "Total Control", prompt: "Strip or dress Emma exactly, pose while stroking 3 min."},
+                {tier: "tier3", player: "Banks", title: "Performance Finale", prompt: "Direct 5-min show: largest toy, crawling, stripping."},
+                // tier3 – Emma
+                {tier: "tier3", player: "Emma", title: "Erotic Show", prompt: "Dance silently with largest toy, gesture for depth/speed."},
+                {tier: "tier3", player: "Emma", title: "Bound Surrender", prompt: "Offer wrists, obey commands 2 min."},
+                {tier: "tier3", player: "Emma", title: "Cock and Toy", prompt: "Fuck largest dildo while sucking/stroking Banks 3 min."},
+                {tier: "tier3", player: "Emma", title: "Total Submission", prompt: "Kneel, silently await 3 commands, obey instantly."}
+            ]
+        };
+
+        function generateCards() {
+            const selectedTiers = Array.from(document.querySelectorAll('.tier-selector input:checked'))
+                .map(input => input.value);
+            
+            const filteredCards = gameData.cards.filter(card => selectedTiers.includes(card.tier));
+            displayCards(filteredCards);
+        }
+
+        function generateAllCards() {
+            displayCards(gameData.cards);
+        }
+
+        function clearCards() {
+            document.getElementById('cardContainer').innerHTML = '';
+        }
+
+        function displayCards(cards) {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = '';
+
+            cards.forEach((card, index) => {
+                const cardElement = createCardElement(card, index + 1);
+                container.appendChild(cardElement);
+            });
+        }
+
+        function createCardElement(card, cardNumber) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            
+            const tierEmoji = {
+                'drinking': '🍺',
+                'tier1': '🟢',
+                'tier2': '🟣',
+                'tier3': '🔴',
+                'punishment': '⚡'
+            };
+
+            cardDiv.innerHTML = `
+                <div class="tier-badge">${tierEmoji[card.tier]} ${card.tier.toUpperCase()}</div>
+                <div class="card-header">
+                    <div class="card-title">${card.title}</div>
+                    <div class="card-player">${card.player}</div>
+                </div>
+                <div class="card-prompt">${card.prompt}</div>
+                <div class="card-number">#${cardNumber.toString().padStart(2, '0')}</div>
+            `;
+
+            return cardDiv;
+        }
+
+        // Generate all cards by default
+        window.onload = function() {
+            generateAllCards();
+        };
+    </script>
+</body>
+</html> 
